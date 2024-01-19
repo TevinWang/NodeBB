@@ -1,13 +1,13 @@
-const _ = require('lodash');
+import _ = require('lodash');
 
-const meta = require('../meta');
-const db = require('../database');
-const plugins = require('../plugins');
-const user = require('../user');
-const topics = require('../topics');
-const categories = require('../categories');
-const groups = require('../groups');
-const utils = require('../utils');
+import meta = require('../meta');
+import db = require('../database');
+import plugins = require('../plugins');
+import user = require('../user');
+import topics = require('../topics');
+import categories = require('../categories');
+import groups = require('../groups');
+import utils = require('../utils');
 
 type CreateData = {
   content?: string;
@@ -62,9 +62,9 @@ module.exports = function (Posts: { create: (data: CreateData) => Promise<unknow
             throw new Error('[[error:invalid-pid]]');
         }
 
-        // eslint-disable-next-line max-len
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-        const pid: string = await db.incrObjectField('global', 'nextPid');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const pid: string = await db.incrObjectField('global', 'nextPid') as string;
+
         let postData: PostData = {
             pid: pid,
             uid: uid,
@@ -76,6 +76,7 @@ module.exports = function (Posts: { create: (data: CreateData) => Promise<unknow
         if (data.toPid) {
             postData.toPid = data.toPid;
         }
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (data.ip && meta.config.trackIpPerPost) {
             postData.ip = data.ip;
@@ -84,14 +85,14 @@ module.exports = function (Posts: { create: (data: CreateData) => Promise<unknow
             postData.handle = data.handle;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        let result: { post: PostData } = await plugins.hooks.fire('filter:post.create', { post: postData, data: data });
+        let result: { post: PostData } = await plugins.hooks.fire('filter:post.create', { post: postData, data: data }) as { post : PostData };
         postData = result.post;
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await db.setObject(`post:${postData.pid}`, postData);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const topicData: { cid?: string, pinned: boolean } = await topics.getTopicFields(tid, ['cid', 'pinned']);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const topicData: { cid?: string, pinned: boolean } = await topics.getTopicFields(tid, ['cid', 'pinned']) as { cid?: string, pinned: boolean };
         postData.cid = topicData.cid;
 
         await Promise.all([
@@ -111,8 +112,7 @@ module.exports = function (Posts: { create: (data: CreateData) => Promise<unknow
             Posts.uploads.sync(postData.pid),
         ]);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        result = await plugins.hooks.fire('filter:post.get', { post: postData, uid: data.uid });
+        result = await plugins.hooks.fire('filter:post.get', { post: postData, uid: data.uid }) as { post: PostData };
         result.post.isMain = isMain;
         plugins.hooks.fire('action:post.save', { post: _.clone(result.post) }).catch((e: Error) => console.error(e));
         return result.post;
