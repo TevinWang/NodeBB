@@ -1,13 +1,13 @@
-import _ from 'lodash';
+const _ = require('lodash');
 
-import meta from '../meta';
-import db from '../database';
-import plugins from '../plugins';
-import user from '../user';
-import topics from '../topics';
-import categories from '../categories';
-import groups from '../groups';
-import utils from '../utils';
+const meta = require('../meta');
+const db = require('../database');
+const plugins = require('../plugins');
+const user = require('../user');
+const topics = require('../topics');
+const categories = require('../categories');
+const groups = require('../groups');
+const utils = require('../utils');
 
 type CreateData = {
   content?: string;
@@ -33,7 +33,7 @@ type PostData = {
   timestamp: number | Date;
 }
 
-export default function createPost(Posts: { create: (data: CreateData) => Promise<unknown>, uploads:
+module.exports = function (Posts: { create: (data: CreateData) => Promise<unknown>, uploads:
 { sync: (pid: string) => unknown } }) {
     async function addReplyTo(postData: PostData, timestamp: number | Date) {
         if (!postData.toPid) {
